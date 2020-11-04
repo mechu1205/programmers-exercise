@@ -1,4 +1,5 @@
 # https://programmers.co.kr/learn/courses/30/lessons/64064
+from itertools import combinations
 
 def match(string, pattern):
     length = len(string)
@@ -7,13 +8,20 @@ def match(string, pattern):
         if pattern[i] != string[i] and pattern[i] != '*': return False
     return True
 
+def targets(z, taken):
+    if not len(z): return [taken]
+    num, cands = z[0]
+    cands = [cand for cand in cands if cand not in taken]
+    if len(cands)<num: return []
+    
+    ans = []
+    for combo in combinations(cands, num):
+        ans += targets(z[1:], taken+list(combo))
+    
+    return ans
 
 def solution(user_id, banned_id):
-    answer = 0
-    return answer
-    
     bans = dict()
-    #lCands = list()
     map = dict()
     
     for id in banned_id:
@@ -21,23 +29,21 @@ def solution(user_id, banned_id):
             bans[id] +=1
         else:
             bans[id] = 1
-    '''
-    for ban in bans:
-        lCands.append([])
-        for idx, user in enumerate(user_id):
-            if match(user, ban): lCands[-1].append(idx)    
-        '''
     
     for ban in bans:
         map[ban] = []
         for idx, user in enumerate(user_id):
             if match(user, ban): map[ban].append(idx)
+    
+    z = list(zip(bans.values(), map.values()))
+
+    combos = targets(z, [])
+    
+    combos = [combo for combo in combos if len(combo)==len(banned_id)]
+    combos = list(set([''.join([str(idx) for idx in sorted(combo)]) for combo in combos]))
+    return len(combos)
         
-    for lCand in lCands[temp]:
-'''
-strat
-map bannedid to userid
-for bannedid in unique(banned_id):
-    for all possible combination of matches for all occurrences of bannedid,
-    do recursion
-'''
+
+print(solution (["frodo", "fradi", "crodo", "abc123", "frodoc"], ["fr*d*", "abc1**"]))
+print(solution (["frodo", "fradi", "crodo", "abc123", "frodoc"], ["*rodo", "*rodo", "******"]))
+print(solution (["frodo", "fradi", "crodo", "abc123", "frodoc"], ["fr*d*", "*rodo", "******", "******"]))
